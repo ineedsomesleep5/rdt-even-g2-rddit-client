@@ -229,7 +229,7 @@ export class EvenRedditClient {
 
   private async loadCommentsForSelectedPost() {
     const post = this.posts[this.selectedIndex];
-    if (!post?.permalink) return;
+    if (!post?.permalink || post.numComments <= 0) return;
 
     this.savedPostIndex = this.selectedIndex;
     this.view = 'comments';
@@ -537,6 +537,8 @@ export class EvenRedditClient {
       // Feeds tap is handled by listEvent (native list widget) — nothing to do here
       return;
     } else if (this.view === 'posts') {
+      const post = this.posts[this.selectedIndex];
+      if (!post || post.numComments <= 0) return;
       await this.loadCommentsForSelectedPost();
     } else if (this.view === 'comments') {
       this.savedCommentIndex = this.selectedIndex;
