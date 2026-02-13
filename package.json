@@ -1,0 +1,22 @@
+{
+  "name": "rdt",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0 --strictPort",
+    "qr": "evenhub qr --port 5173 --path /",
+    "init:evenhub": "evenhub init --output app.json",
+    "pack": "npm run build && evenhub pack app.json ./dist --output rdt.ehpk",
+    "pack:check": "evenhub pack app.json ./dist --check"
+  },
+  "dependencies": {
+    "@evenrealities/even_hub_sdk": "^0.0.7",
+    "@evenrealities/evenhub-cli": "^0.1.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "vite": "^6.1.0"
+  }
+}

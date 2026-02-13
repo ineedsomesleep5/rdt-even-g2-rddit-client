@@ -1,0 +1,18 @@
+{
+  "package_id": "uk.wintermute.rdt",
+  "edition": "202601",
+  "name": "rdt",
+  "version": "0.1.0",
+  "min_app_version": "0.1.0",
+  "tagline": "Browse Reddit on your Even glasses",
+  "description": "rdt is a simple Reddit top-posts + comments viewer built as an EvenHub WebView app using @evenrealities/even_hub_sdk.",
+  "author": "Your Name <you@example.com>",
+  "entrypoint": "index.html",
+  "permissions": {
+    "network": [
+      "www.reddit.com",
+      "reddit.com",
+      "evenhub.evenrealities.com"
+    ]
+  }
+}
