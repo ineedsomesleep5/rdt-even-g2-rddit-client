@@ -432,11 +432,10 @@ export class EvenRedditClient {
 
       if (eventType === OsEventTypeList.SCROLL_TOP_EVENT) {
         flashIndicator('ind-scroll-top', 'SCROLL_TOP_EVENT');
-        
-        if (this.swipeThrottleOk()) await this.handleSwipeRight();
+        if (this.swipeThrottleOk()) await this.handleSwipeLeft();
       } else if (eventType === OsEventTypeList.SCROLL_BOTTOM_EVENT) {
         flashIndicator('ind-scroll-bottom', 'SCROLL_BOTTOM_EVENT');
-        if (this.swipeThrottleOk()) await this.handleSwipeLeft();
+        if (this.swipeThrottleOk()) await this.handleSwipeRight();
       } else if (eventType === OsEventTypeList.CLICK_EVENT || eventType === undefined) {
         flashIndicator('ind-click', 'TEXT CLICK_EVENT');
         await this.handleTap();
@@ -458,10 +457,10 @@ export class EvenRedditClient {
         await this.handleDoubleTap();
       } else if (eventType === OsEventTypeList.SCROLL_TOP_EVENT) {
         flashIndicator('ind-scroll-top', 'SYS SCROLL_TOP_EVENT');
-        if (this.swipeThrottleOk()) await this.handleSwipeRight();
+        if (this.swipeThrottleOk()) await this.handleSwipeLeft();
       } else if (eventType === OsEventTypeList.SCROLL_BOTTOM_EVENT) {
         flashIndicator('ind-scroll-bottom', 'SYS SCROLL_BOTTOM_EVENT');
-        if (this.swipeThrottleOk()) await this.handleSwipeLeft();
+        if (this.swipeThrottleOk()) await this.handleSwipeRight();
       }
     }
 
