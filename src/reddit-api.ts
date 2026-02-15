@@ -1,8 +1,10 @@
 import type { RedditPost, RedditComment } from './types';
 import { currentFeed } from './constants';
 
-/** Use Vite proxy in dev so we get real HTTP errors instead of opaque CORS failures. */
-const REDDIT_BASE = import.meta.env.DEV ? '/reddit-api' : 'https://old.reddit.com';
+// We use corsproxy.io to bypass the CORS restriction on the glasses
+const REDDIT_BASE = import.meta.env.DEV 
+  ? '/reddit-api' 
+  : 'https://corsproxy.io/?https://old.reddit.com';
 
 async function fetchJson(url: string, retries = 3) {
   for (let attempt = 1; attempt <= retries; attempt++) {
