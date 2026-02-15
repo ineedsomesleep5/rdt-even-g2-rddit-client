@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/reddit-proxy/:match*",
+      "destination": "https://www.reddit.com/:match*"
+    }
+  ]
+}
