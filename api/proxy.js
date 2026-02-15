@@ -1,29 +1,32 @@
 export default async function handler(req, res) {
-  // 1. Get the "path" from the query (e.g., /r/funny/top.json)
   const { path } = req.query;
 
   if (!path) {
     return res.status(400).json({ error: 'Missing path parameter' });
   }
 
-  // 2. Define the Reddit URL
+  // We use www.reddit.com to ensure we hit the standard API
   const targetUrl = `https://www.reddit.com${path}`;
 
   try {
-    // 3. Fetch from Reddit server-side (pretending to be a desktop browser)
+    // FIX: Use a unique User-Agent string. 
+    // Reddit blocks generic "Mozilla" browser agents from servers.
     const response = await fetch(targetUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        'User-Agent': 'script:g2-glass-reader:v1.0 (by /u/cal_feliciano_dev)'
       }
     });
 
     if (!response.ok) {
-        return res.status(response.status).json({ error: 'Reddit blocked the request' });
+        // This captures the exact reason Reddit said "No" so we can debug if needed
+        const errorText = await response.text();
+        console.error("Reddit Blocked:", errorText);
+        return res.status(response.status).json({ error: 'Reddit blocked request', details: errorText });
     }
 
     const data = await response.json();
 
-    // 4. Send back to glasses with strict CORS permissions
+    // Allow your glasses to read this data (CORS)
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET');
     res.status(200).json(data);
