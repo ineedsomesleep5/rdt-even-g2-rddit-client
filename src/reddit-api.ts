@@ -2,14 +2,13 @@ import type { RedditPost, RedditComment } from './types';
 import { currentFeed } from './constants';
 
 /**
- * UPDATED: Use the Vercel rewrite path to avoid CORS issues.
- * This corresponds to the "rewrites" rule you added to vercel.json.
- * * Local Dev -> uses Vite proxy (/reddit-api)
- * Production -> uses Vercel rewrite (/reddit-proxy)
+ * UPDATED: Use the Vercel Serverless Function to bypass CORS.
+ * This points to api/proxy.js which fetches data server-side.
+ * * We use 'encodeURIComponent' in the functions below to ensure 
+ * the entire Reddit path (including ?limit=...) is passed as 
+ * a single string to our proxy.
  */
-const REDDIT_BASE = import.meta.env.DEV 
-  ? '/reddit-api' 
-  : '/reddit-proxy';
+const REDDIT_PROXY_PREFIX = '/api/proxy?path=';
 
 async function fetchJson(url: string, retries = 3) {
   for (let attempt = 1; attempt <= retries; attempt++) {
@@ -56,12 +55,18 @@ async function fetchJson(url: string, retries = 3) {
 }
 
 export async function fetchTopPosts(limit = 30): Promise<RedditPost[]> {
-  const base = currentFeed.path
-    ? `${REDDIT_BASE}/${currentFeed.path}/top.json`
-    : `${REDDIT_BASE}/top.json`;
+  // 1. Construct the path relative to Reddit (e.g. "/r/funny/top.json")
+  const redditPath = currentFeed.path
+    ? `/${currentFeed.path}/top.json`
+    : `/top.json`;
   
-  // Note: We use base directly because REDDIT_BASE now points to our local proxy path
-  const json = await fetchJson(`${base}?limit=${limit}&t=day&raw_json=1`);
+  // 2. Add the query params for Reddit
+  const fullRedditUrl = `${redditPath}?limit=${limit}&t=day&raw_json=1`;
+
+  // 3. Encode the WHOLE thing so it passes safely to api/proxy.js
+  const proxyUrl = `${REDDIT_PROXY_PREFIX}${encodeURIComponent(fullRedditUrl)}`;
+  
+  const json = await fetchJson(proxyUrl);
   const children = json?.data?.children ?? [];
 
   const posts: RedditPost[] = [];
@@ -99,9 +104,15 @@ export async function fetchTopPosts(limit = 30): Promise<RedditPost[]> {
 
 export async function fetchComments(permalink: string, limit = 50): Promise<RedditComment[]> {
   if (!permalink) return [];
-  // permalink usually starts with "/r/...", so appending it to REDDIT_BASE works perfectly
-  // Example: /reddit-proxy/r/funny/comments/xyz.json
-  const json = await fetchJson(`${REDDIT_BASE}${permalink}.json?limit=${limit}&raw_json=1`);
+  
+  // permalink usually looks like "/r/funny/comments/xyz/title"
+  // We need to append .json and parameters
+  const fullRedditUrl = `${permalink}.json?limit=${limit}&raw_json=1`;
+
+  // Encode for proxy
+  const proxyUrl = `${REDDIT_PROXY_PREFIX}${encodeURIComponent(fullRedditUrl)}`;
+
+  const json = await fetchJson(proxyUrl);
 
   // Response is [postListing, commentListing]
   const commentListing = json?.[1]?.data?.children ?? [];
