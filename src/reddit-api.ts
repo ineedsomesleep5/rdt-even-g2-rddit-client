@@ -1,10 +1,15 @@
 import type { RedditPost, RedditComment } from './types';
 import { currentFeed } from './constants';
 
-// We use corsproxy.io to bypass the CORS restriction on the glasses
+/**
+ * UPDATED: Use the Vercel rewrite path to avoid CORS issues.
+ * This corresponds to the "rewrites" rule you added to vercel.json.
+ * * Local Dev -> uses Vite proxy (/reddit-api)
+ * Production -> uses Vercel rewrite (/reddit-proxy)
+ */
 const REDDIT_BASE = import.meta.env.DEV 
   ? '/reddit-api' 
-  : 'https://corsproxy.io/?https://old.reddit.com';
+  : '/reddit-proxy';
 
 async function fetchJson(url: string, retries = 3) {
   for (let attempt = 1; attempt <= retries; attempt++) {
@@ -54,6 +59,8 @@ export async function fetchTopPosts(limit = 30): Promise<RedditPost[]> {
   const base = currentFeed.path
     ? `${REDDIT_BASE}/${currentFeed.path}/top.json`
     : `${REDDIT_BASE}/top.json`;
+  
+  // Note: We use base directly because REDDIT_BASE now points to our local proxy path
   const json = await fetchJson(`${base}?limit=${limit}&t=day&raw_json=1`);
   const children = json?.data?.children ?? [];
 
@@ -92,6 +99,8 @@ export async function fetchTopPosts(limit = 30): Promise<RedditPost[]> {
 
 export async function fetchComments(permalink: string, limit = 50): Promise<RedditComment[]> {
   if (!permalink) return [];
+  // permalink usually starts with "/r/...", so appending it to REDDIT_BASE works perfectly
+  // Example: /reddit-proxy/r/funny/comments/xyz.json
   const json = await fetchJson(`${REDDIT_BASE}${permalink}.json?limit=${limit}&raw_json=1`);
 
   // Response is [postListing, commentListing]
