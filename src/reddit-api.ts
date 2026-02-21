@@ -1,37 +1,17 @@
 import type { RedditPost, RedditComment } from './types';
 import { currentFeed } from './constants';
 
-/** 
- * Because public proxy datacenter IPs are aggressively firewalled by Reddit's Cloudflare config, 
- * we must use an authenticated OAuth Implicit flow directly from the browser natively.
- */
-const REDDIT_BASE = import.meta.env.DEV ? '/reddit-api' : 'https://oauth.reddit.com';
+/** Use Vercel API proxy route so we get real HTTP errors instead of opaque CORS failures. */
+const REDDIT_BASE = '/reddit-api';
 
 async function fetchJson(url: string, retries = 3) {
-  // If we are in production and connecting to oauth.reddit.com, we must have a token
-  const token = localStorage.getItem('reddit_access_token');
-  if (!import.meta.env.DEV && !token) {
-    throw new Error('OAuth token missing. Please use your phone to log into Reddit first.');
-  }
-
   for (let attempt = 1; attempt <= retries; attempt++) {
     console.log(`📡 fetchJson (attempt ${attempt}/${retries}): ${url}`);
     let resp: Response;
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 10_000);
-
-      const headers: Record<string, string> = {
-        'User-Agent': import.meta.env.DEV ? 'even-dev-simulator/1.0' : 'web:even-ar-glasses-hub:v1.0.0 (by /u/ineedsomesleep5)'
-      };
-
-      // Attach the OAuth token if available
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
       resp = await fetch(url, {
-        headers,
         signal: controller.signal,
       });
       clearTimeout(timeout);
